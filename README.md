@@ -1,1 +1,1 @@
-(https://i.imgur.com/3MAzEp1.png)
+![ローグライクチュートリアル](https://i.imgur.com/3MAzEp1.png)
