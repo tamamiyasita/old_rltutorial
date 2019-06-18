@@ -17,3 +17,5 @@ The goal is to understand the system and be able to implement it yourself.
 
 
 目標はシステムを理解し自分で実装出来るようになることです
+
+英語の壁を翻訳ツールでなんとかしてがんばる
