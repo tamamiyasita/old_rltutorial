@@ -1,4 +1,5 @@
 import tcod as libtcod
+import tcod.event as event
 from input_handlers import handle_keys
 
 
@@ -18,18 +19,10 @@ def main():
     libtcod.console_init_root(screen_width, screen_height, "libtcod チュートリアル改訂", False)
 
     # デフォルトのコンソールを指定する
-    con = libtcod.console_new(screen_width, screen_height)
-
-    # キーボードとマウスの入力を表す変数
-    key = libtcod.Key()
-    mouse = libtcod.Mouse()
+    con = libtcod.console.Console(screen_width, screen_height)
 
     # ゲームループと呼ばれるもの、ウィンドウを閉じるまでループする
-    while not libtcod.console_is_window_closed():
-
-        # ユーザー入力をキャプチャする関数、入力した内容で変数を更新する
-        libtcod.sys_check_for_event(libtcod.EVENT_KEY_PRESS, key, mouse)
-
+    while True:
         # "@"シンボルの色を指定する, conの値は描画先のコンソール
         libtcod.console_set_default_foreground(con, libtcod.green)
 
@@ -45,23 +38,30 @@ def main():
         # 移動後の＠をスペース（" "）で上書きして消す
         libtcod.console_put_char(con, player_x, player_y, " ", libtcod.BKGND_NONE)
 
-        # handle_keysから各種変数を作っていく
-        action = handle_keys(key)
 
-        move = action.get("move")
-        exit = action.get("exit")
-        fullscreen = action.get("fullscreen")
 
-        if move:
-            dx, dy = move  # action.get("move")で取得した値がdx, dyに代入される
-            player_x += dx
-            player_y += dy
+        for events in libtcod.event.get():
+            if events.type == "QUIT":
+                raise SystemExit()
+            if events.type == "KEYDOWN":
 
-        if exit:
-            return True
+                # handle_keysから各種変数を作っていく
+                action = handle_keys(events)
 
-        if fullscreen:
-            libtcod.console_set_fullscreen(not libtcod.console_is_fullscreen())
+                move = action.get("move")
+                exit = action.get("exit")
+                fullscreen = action.get("fullscreen")
+                
+                if move:
+                    dx, dy = move  # action.get("move")で取得した値がdx, dyに代入される
+                    player_x += dx
+                    player_y += dy
+
+                if exit:
+                    raise SystemExit()
+
+                if fullscreen:
+                    libtcod.console_set_fullscreen(not libtcod.console_is_fullscreen())
 
 # 明示的に実行された時のみmain()関数を実行する
 if __name__ == "__main__":
