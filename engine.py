@@ -3,6 +3,7 @@ import tcod.event as event
 
 from entity import Entity
 from input_handlers import handle_keys
+from map_objects.game_map import GameMap
 from render_functions import clear_all, render_all
 
 
@@ -12,6 +13,12 @@ def main():
     screen_height = 70
     map_width = 80
     map_height = 45
+
+    # 壁とタイルの色を初期化
+    colors = {
+        "dark_wall": libtcod.Color(0, 0, 100),
+        "dark_ground": libtcod.Color(50, 50, 150)
+    }
 
     # デモ用にプレイヤーとNPCをEntityから生成する、位置と＠とその色を決定しentitiesに入れる
     player = Entity(int(screen_width / 2), int(screen_height / 2), "@", libtcod.green)
@@ -26,10 +33,13 @@ def main():
     # デフォルトのコンソールを指定する
     con = libtcod.console.Console(screen_width, screen_height)
 
+    # ゲームマップの初期化
+    game_map = GameMap(map_width, map_height)
+
     # ゲームループと呼ばれるもの、ウィンドウを閉じるまでループする
     while True:
         # entityをここから呼び出す
-        render_all(con, entities, screen_width, screen_height)
+        render_all(con, entities, game_map, screen_width, screen_height, colors)
 
         # 画面上に描画する機能
         libtcod.console_flush()
@@ -53,7 +63,8 @@ def main():
                 
                 if move:
                     dx, dy = move  # action.get("move")で取得した値がdx, dyに代入される
-                    player.move(dx, dy)
+                    if not game_map.is_blocked(player.x + dx, player.y + dy):
+                        player.move(dx, dy)
 
                 if exit:
                     raise SystemExit()
