@@ -1,27 +1,27 @@
 import tcod as libtcod
+import itertools
 
 
-def render_all(con, entities, game_map, fov_map, fov_recompute, screen_width, screen_height, colors):
+def render_all(con, entities, game_map, r_height, r_width, fov_map, fov_recompute, screen_width, screen_height, colors):
 	# 視野内かどうかでタイルの明暗を変える
 	if fov_recompute:
-		for y in range(game_map.height):
-			for x in range(game_map.width):
-				visible = libtcod.map_is_in_fov(fov_map, x, y)
-				wall = game_map.tiles[x][y].block_sight
+		for y, x in itertools.product(r_height, r_width):
+			visible = libtcod.map_is_in_fov(fov_map, x, y)
+			wall = game_map.tiles[x][y].block_sight
 
-				if visible:
-					if wall:
-						libtcod.console_set_char_background(con, x, y, colors.get("light_wall"), libtcod.BKGND_SET)
-					else:
-						libtcod.console_set_char_background(con, x, y, colors.get("light_ground"), libtcod.BKGND_SET)
+			if visible:
+				if wall:
+					libtcod.console_set_char_background(con, x, y, colors.get("light_wall"), libtcod.BKGND_SET)
+				else:
+					libtcod.console_set_char_background(con, x, y, colors.get("light_ground"), libtcod.BKGND_SET)
 
-					game_map.tiles[x][y].explored = True
+				game_map.tiles[x][y].explored = True
 
-				elif game_map.tiles[x][y].explored:
-					if wall:
-						libtcod.console_set_char_background(con, x, y, colors.get("dark_wall"), libtcod.BKGND_SET)
-					else:
-						libtcod.console_set_char_background(con, x, y, colors.get("dark_ground"), libtcod.BKGND_SET)
+			elif game_map.tiles[x][y].explored:
+				if wall:
+					libtcod.console_set_char_background(con, x, y, colors.get("dark_wall"), libtcod.BKGND_SET)
+				else:
+					libtcod.console_set_char_background(con, x, y, colors.get("dark_ground"), libtcod.BKGND_SET)
 
 	# entitiesのリストをdraw_entityに渡して描画
 	for entity in entities:
