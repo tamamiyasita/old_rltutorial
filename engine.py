@@ -24,6 +24,8 @@ def main():
     fov_light_walls = True
     fov_radius = 10
 
+    max_monsters_per_room = 3
+
     # 壁とタイルの色を初期化
     colors = {
         "dark_wall": libtcod.Color(0, 0, 100),
@@ -33,9 +35,9 @@ def main():
     }
 
     # デモ用にプレイヤーとNPCをEntityから生成する、位置と＠とその色を決定しentitiesに入れる
-    player = Entity(int(screen_width / 2), int(screen_height / 2), "@", libtcod.green)
-    npc = Entity(int(screen_width / 2 - 5), int(screen_height / 2), "@", libtcod.yellow)
-    entities = [npc, player]
+    player = Entity(0, 0, "@", libtcod.green)
+    npc = Entity(0, 0, "@", libtcod.yellow)
+    entities = [player]
     # フォントの指定と(libtcod.FONT_TYPE_GRAYSCALE | libtcod.FONT_LAYOUT_TCOD）でどのタイプのファイルを読み取るのかを伝える
     libtcod.console_set_custom_font("arial10x10.png", libtcod.FONT_TYPE_GRAYSCALE | libtcod.FONT_LAYOUT_TCOD)
 
@@ -47,7 +49,7 @@ def main():
         # ゲームマップの初期化
         game_map = GameMap(map_width, map_height)
         gm_width, gm_height = range(game_map.width), range(game_map.height)
-        game_map.make_map(max_rooms, room_min_size, room_max_size, map_width, map_height, player)
+        game_map.make_map(max_rooms, room_min_size, room_max_size, map_width, map_height, player, entities, max_monsters_per_room)
 
         # 視覚の計算
         fov_recompute = True
