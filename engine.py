@@ -1,6 +1,7 @@
 import tcod as libtcod
 import tcod.event as event
 
+
 from entity import Entity
 from fov_functions import initialize_fov, recompute_fov
 from input_handlers import handle_keys
@@ -45,13 +46,13 @@ def main():
 
         # ゲームマップの初期化
         game_map = GameMap(map_width, map_height)
-        r_width, r_height = range(game_map.width), range(game_map.height)
+        gm_width, gm_height = range(game_map.width), range(game_map.height)
         game_map.make_map(max_rooms, room_min_size, room_max_size, map_width, map_height, player)
 
         # 視覚の計算
         fov_recompute = True
 
-        fov_map = initialize_fov(game_map, r_width, r_height)
+        fov_map = initialize_fov(game_map, gm_width, gm_height)
 
         # ゲームループと呼ばれるもの、ウィンドウを閉じるまでループする
         while True:
@@ -60,7 +61,7 @@ def main():
                 recompute_fov(fov_map, player.x, player.y, fov_radius, fov_light_walls, fov_algorithm)
 
             # entityをここから呼び出す
-            render_all(con, entities, game_map, r_height, r_width, fov_map, fov_recompute, screen_width, screen_height, colors)
+            render_all(con, entities, game_map, gm_height, gm_width, fov_map, fov_recompute, screen_width, screen_height, colors)
 
             fov_recompute = False
 
@@ -96,6 +97,8 @@ def main():
 
                     if fullscreen:
                         libtcod.console_set_fullscreen(not libtcod.console_is_fullscreen())
+
+
 
 # 明示的に実行された時のみmain()関数を実行する
 if __name__ == "__main__":
