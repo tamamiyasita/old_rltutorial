@@ -1,6 +1,11 @@
+
+import tcod as libtcod
 from random import randint
+
+from entity import Entity
 from map_objects.rectangle import Rect
 from map_objects.tile import Tile
+
 
 
 class GameMap:
@@ -79,6 +84,28 @@ class GameMap:
         for y in range(min(y1, y2), max(y1, y2) + 1):
             self.tiles[x][y].blocked = False
             self.tiles[x][y].block_sight = False
+
+    def place_entities(self, room, entities, max_monsters_per_room):
+        """ダンジョンに敵を配置する機能"""
+        # モンスターを何体部屋に配置するかランダムに決める
+        number_of_monsters = randint(0, max_monsters_per_room)
+
+        for i in range(number_of_monsters):
+            # 部屋のどのあたりに配置するかランダムに決める
+            x = randint(room.x1 + 1, room.x2 - 1)
+            y = randint(room.y1 + 1, room.y2 - 1)
+
+            # ランダムな場所を選びそこにオブジェクトが無ければモンスターを配置する
+            if not any([entity for entity in entities if entity.x == x and entity.y == y]):
+                # オークを80％トロールを20％で配置
+                if randint(0, 100) < 80:
+                    monster = Entity(x, y, "o", libtcod.desaturated_green)
+                else:
+                    monster = Entity(x, y, "T", libtcod.dark_green)
+                # entitiesに格納する
+                entities.append(monster)
+
+
 
     def is_blocked(self, x, y):
         if self.tiles[x][y].blocked:
