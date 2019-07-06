@@ -2,8 +2,9 @@ import tcod as libtcod
 import tcod.event as event
 
 
-from entity import Entity
+from entity import Entity, get_blocking_entities_at_location
 from fov_functions import initialize_fov, recompute_fov
+from game_states import GameStates
 from input_handlers import handle_keys
 from map_objects.game_map import GameMap
 from render_functions import clear_all, render_all
@@ -35,11 +36,14 @@ def main():
     }
 
     # デモ用にプレイヤーとNPCをEntityから生成する、位置と＠とその色を決定しentitiesに入れる
-    player = Entity(0, 0, "@", libtcod.green)
-    npc = Entity(0, 0, "@", libtcod.yellow)
-    entities = [player]
+    player = Entity(0, 0, "@", libtcod.green, "player", blocks=True)
+    npc = Entity(0, 0, "@", libtcod.yellow, "npc", blocks=True)
+    tama = Entity(0, 0, "C", libtcod.white, "tama")
+    entities = [player, npc, tama]
     # フォントの指定と(libtcod.FONT_TYPE_GRAYSCALE | libtcod.FONT_LAYOUT_TCOD）でどのタイプのファイルを読み取るのかを伝える
     libtcod.console_set_custom_font("arial10x10.png", libtcod.FONT_TYPE_GRAYSCALE | libtcod.FONT_LAYOUT_TCOD)
+
+    game_state = GameStates.PLAYERS_TURN
 
     # ここで実際に画面を作成する、画面サイズとタイトルとフルスクリーンとレンダラーと画面の垂直同期を指定している
     with libtcod.console_init_root(screen_width, screen_height, "libtcod チュートリアル改訂",
@@ -49,7 +53,7 @@ def main():
         # ゲームマップの初期化
         game_map = GameMap(map_width, map_height)
         gm_width, gm_height = range(game_map.width), range(game_map.height)
-        game_map.make_map(max_rooms, room_min_size, room_max_size, map_width, map_height, player, entities, max_monsters_per_room)
+        game_map.make_map(max_rooms, room_min_size, room_max_size, map_width, map_height, player, npc, tama, entities, max_monsters_per_room)
 
         # 視覚の計算
         fov_recompute = True
@@ -87,18 +91,36 @@ def main():
                     exit = action.get("exit")
                     fullscreen = action.get("fullscreen")
                     
-                    if move:
+                    if move and game_state == GameStates.PLAYERS_TURN:
                         dx, dy = move  # action.get("move")で取得した値がdx, dyに代入される
-                        if not game_map.is_blocked(player.x + dx, player.y + dy):
-                            player.move(dx, dy)
-                            # moveで動いたあとにfovを計算する
-                            fov_recompute = True
+                        
+                        destination_x = player.x + dx
+                        destination_y = player.y + dy
+
+                        if not game_map.is_blocked(destination_x, destination_y):
+                            target = get_blocking_entities_at_location(entities, destination_x, destination_y)
+
+                            if target:
+                                print("あなたは" + target.name + " の向う脛を蹴飛ばした ")
+                            else:
+                                player.move(dx, dy)
+
+                                fov_recompute = True
+
+                            game_state = GameStates.ENEMY_TURN
 
                     if exit:
                         raise SystemExit()
 
                     if fullscreen:
                         libtcod.console_set_fullscreen(not libtcod.console_is_fullscreen())
+
+                    if game_state == GameStates.ENEMY_TURN:
+                        for entity in entities:
+                            if entity != player:
+                                print("彼" + entity.name + "はその存在の意味を考えています")
+                                
+                        game_state = GameStates.PLAYERS_TURN
 
 
 

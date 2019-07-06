@@ -20,7 +20,7 @@ class GameMap:
 
         return tiles
 
-    def make_map(self, max_rooms, room_min_size, room_max_size, map_width, map_height, player, entities,
+    def make_map(self, max_rooms, room_min_size, room_max_size, map_width, map_height, player, npc, tama, entities,
                  max_monsters_per_room):
         rooms = []
         num_rooms = 0
@@ -51,6 +51,10 @@ class GameMap:
                     # 初回はとりあえずplayerが居る最初の部屋の作成だけしてroomsリストに追加しnum_roomsに＋１する
                     player.x = new_x
                     player.y = new_y
+                    npc.x = new_x + 1
+                    npc.y = new_y + 1
+                    tama.x = new_x + 2
+                    tama.y = new_y + 2
                 else:
                     # 二回目以降に前の部屋の中心座標を変数prev_x,yに入れる(当然新しい部屋の座標はnew_x,yに入っている)
                     (prev_x, prev_y) = rooms[num_rooms - 1].center()
@@ -102,9 +106,9 @@ class GameMap:
             if not any([entity for entity in entities if entity.x == x and entity.y == y]):
                 # オークを80％トロールを20％で配置
                 if randint(0, 100) < 80:
-                    monster = Entity(x, y, "o", libtcod.desaturated_green)
+                    monster = Entity(x, y, "o", libtcod.desaturated_green, "Orc", blocks=True)
                 else:
-                    monster = Entity(x, y, "T", libtcod.dark_green)
+                    monster = Entity(x, y, "T", libtcod.dark_green, "Troll", blocks=True)
                 # entitiesに格納する
                 entities.append(monster)
 
