@@ -1,7 +1,7 @@
 import tcod as libtcod
 import tcod.event as event
 
-
+from components.fighter import Fighter
 from entity import Entity, get_blocking_entities_at_location
 from fov_functions import initialize_fov, recompute_fov
 from game_states import GameStates
@@ -35,8 +35,8 @@ def main():
         "light_ground": libtcod.Color(200, 180, 50)
     }
 
-    # デモ用にプレイヤーとNPCをEntityから生成する、位置と＠とその色を決定しentitiesに入れる
-    player = Entity(0, 0, "@", libtcod.green, "player", blocks=True)
+    fighter_component = Fighter(hp=30, defense=2, power=5)
+    player = Entity(0, 0, "@", libtcod.green, "player", blocks=True, fighter=fighter_component)
     npc = Entity(0, 0, "@", libtcod.yellow, "npc", blocks=True)
     tama = Entity(0, 0, "C", libtcod.white, "tama")
     entities = [player, npc, tama]
@@ -117,8 +117,8 @@ def main():
 
                     if game_state == GameStates.ENEMY_TURN:
                         for entity in entities:
-                            if entity != player:
-                                print("彼" + entity.name + "はその存在の意味を考えています")
+                            if entity.ai:
+                                entity.ai.take_turn(player, fov_map, game_map, entities)
                                 
                         game_state = GameStates.PLAYERS_TURN
 
