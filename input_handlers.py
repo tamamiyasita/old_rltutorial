@@ -1,7 +1,7 @@
 import tcod as libtcod
 import tcod.event as event
 
-#
+
 def handle_keys(events):
     # ＠の移動キー
     if events.sym == event.K_UP:
@@ -15,6 +15,18 @@ def handle_keys(events):
 
     elif events.sym == event.K_RIGHT:
         return {"move": (1, 0)}
+    
+    elif events.sym == event.K_HOME:
+        return {"move": (-1, -1)}
+
+    elif events.sym == event.K_END:
+        return {"move": (-1, 1)}
+
+    elif events.sym == event.K_PAGEUP:
+        return {"move": (1, -1)}
+
+    elif events.sym == event.K_PAGEDOWN:
+        return {"move": (1, 1)}
 
     # ALT + Enterでフルスクリーン
     if events.sym == event.K_RETURN and event.KMOD_LALT:

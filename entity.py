@@ -1,4 +1,6 @@
+import tcod as libtcod
 import math
+import itertools
 
 class Entity:
     """
@@ -11,7 +13,7 @@ class Entity:
         self.color = color
         self.name = name
         self.blocks = blocks
-        self.figher = fighter
+        self.fighter = fighter
         if self.fighter:
             self.fighter.owner = self
 
@@ -35,6 +37,43 @@ class Entity:
         if not (game_map.is_blocked(self.x + dx, self.y + dy) or
                 get_blocking_entities_at_location(entities, self.x + dx, self.y + dy)):
             self.move(dx, dy)
+
+    def move_astar(self, target, entities, game_map):
+        # mapの寸法を持つfovマップを作製する
+        fov = libtcod.map_new(game_map.width, game_map.height)
+
+        # 現在の地図を毎回スキャンし、全ての壁を歩けないように設定する
+        for y1, x1 in itertools.product(range(game_map.height), range(game_map.width)):
+            libtcod.map_set_properties(fov, x1, y1, not game_map.tiles[x1][y1].block_sight,
+                                        not game_map.tiles[x1][y1].blocked)
+
+        # 全てのオブジェクトをスキャンして移動させるオブジェクトを確認する
+        for entity in entities:
+            if entity.blocks and entity != self and entity != target:
+                libtcod.map_set_properties(fov, entity.x, entity.y, True, False)
+
+        my_path = libtcod.path_new_using_map(fov, 1.41)
+
+        libtcod.path_compute(my_path, self.x, self.y, target.x, target.y)
+
+        if not libtcod.path_is_empty(my_path) and libtcod.path_size(my_path) < 25:
+            x, y = libtcod.path_walk(my_path, True)
+            if x or y:
+                self.x = x
+                self.y = y
+        else:
+            self.move_towards(target.x, target.y, game_map, entities)
+
+        libtcod.path_delete(my_path)
+
+
+
+
+
+
+
+
+
 
     def distance_to(self, other):
         dx = other.x - self.x
