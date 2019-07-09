@@ -2,10 +2,10 @@ import tcod as libtcod
 import itertools
 
 
-def initialize_fov(game_map, gm_width, gm_height):
+def initialize_fov(game_map):
     fov_map = libtcod.map_new(game_map.width, game_map.height)
 
-    for x, y in itertools.product(gm_width, gm_height):
+    for x, y in itertools.product(range(game_map.width), range(game_map.height)):
         libtcod.map_set_properties(fov_map, x, y, not game_map.tiles[x][y].block_sight,
                                     not game_map.tiles[x][y].blocked)
 

@@ -52,13 +52,12 @@ def main():
 
         # ゲームマップの初期化
         game_map = GameMap(map_width, map_height)
-        gm_width, gm_height = range(game_map.width), range(game_map.height)
         game_map.make_map(max_rooms, room_min_size, room_max_size, map_width, map_height, player, npc, tama, entities, max_monsters_per_room)
 
         # 視覚の計算
         fov_recompute = True
 
-        fov_map = initialize_fov(game_map, gm_width, gm_height)
+        fov_map = initialize_fov(game_map)
 
         # ゲームループと呼ばれるもの、ウィンドウを閉じるまでループする
         while True:
@@ -67,7 +66,7 @@ def main():
                 recompute_fov(fov_map, player.x, player.y, fov_radius, fov_light_walls, fov_algorithm)
 
             # entityをここから呼び出す
-            render_all(con, entities, game_map, gm_height, gm_width, fov_map, fov_recompute, screen_width, screen_height, colors)
+            render_all(con, entities, game_map, fov_map, fov_recompute, screen_width, screen_height, colors)
 
             fov_recompute = False
 
@@ -101,7 +100,7 @@ def main():
                             target = get_blocking_entities_at_location(entities, destination_x, destination_y)
 
                             if target:
-                                print("あなたは" + target.name + " の向う脛を蹴飛ばした ")
+                                player.fighter.attack(target)
                             else:
                                 player.move(dx, dy)
 

@@ -2,10 +2,10 @@ import tcod as libtcod
 import itertools
 
 
-def render_all(con, entities, game_map, gm_height, gm_width, fov_map, fov_recompute, screen_width, screen_height, colors):
+def render_all(con, entities, game_map, fov_map, fov_recompute, screen_width, screen_height, colors):
 	# 視野内かどうかでタイルの明暗を変える
 	if fov_recompute:
-		for y, x in itertools.product(gm_height, gm_width):
+		for y, x in itertools.product(range(game_map.height), range(game_map.width)):
 			visible = libtcod.map_is_in_fov(fov_map, x, y)
 			wall = game_map.tiles[x][y].block_sight
 
