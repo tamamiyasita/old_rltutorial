@@ -2,20 +2,26 @@ import tcod as libtcod
 import tcod.event as event
 
 from components.fighter import Fighter
+from death_functions import kill_monster, kill_player
 from entity import Entity, get_blocking_entities_at_location
 from fov_functions import initialize_fov, recompute_fov
 from game_states import GameStates
 from input_handlers import handle_keys
 from map_objects.game_map import GameMap
-from render_functions import clear_all, render_all
+from render_functions import clear_all, render_all, RenderOrder
 
 
 def main():
     # 画面サイズの変数
     screen_width = 80
     screen_height = 70
+
+    # bar_width = 20
+    # panel_height = 7
+    # panel_y = screen_height - panel_height
+
     map_width = 80
-    map_height = 45
+    map_height = 43
 
     room_max_size = 10
     room_min_size = 6
@@ -36,7 +42,7 @@ def main():
     }
 
     fighter_component = Fighter(hp=30, defense=2, power=5)
-    player = Entity(0, 0, "@", libtcod.green, "player", blocks=True, fighter=fighter_component)
+    player = Entity(0, 0, "@", libtcod.green, "player", blocks=True, render_order=RenderOrder.ACTOR, fighter=fighter_component)
     npc = Entity(0, 0, "@", libtcod.yellow, "npc", blocks=True)
     tama = Entity(0, 0, "C", libtcod.white, "tama")
     entities = [player, npc, tama]
@@ -44,6 +50,7 @@ def main():
     libtcod.console_set_custom_font("arial10x10.png", libtcod.FONT_TYPE_GRAYSCALE | libtcod.FONT_LAYOUT_TCOD)
 
     game_state = GameStates.PLAYERS_TURN
+    # panel = libtcod.console_new(screen_width, panel_height)
 
     # ここで実際に画面を作成する、画面サイズとタイトルとフルスクリーンとレンダラーと画面の垂直同期を指定している
     with libtcod.console_init_root(screen_width, screen_height, "libtcod チュートリアル改訂",
@@ -66,7 +73,7 @@ def main():
                 recompute_fov(fov_map, player.x, player.y, fov_radius, fov_light_walls, fov_algorithm)
 
             # entityをここから呼び出す
-            render_all(con, entities, game_map, fov_map, fov_recompute, screen_width, screen_height, colors)
+            render_all(con, entities, player, game_map, fov_map, fov_recompute, screen_width, screen_height, colors)
 
             fov_recompute = False
 
@@ -89,6 +96,8 @@ def main():
                     move = action.get("move")
                     exit = action.get("exit")
                     fullscreen = action.get("fullscreen")
+
+                    player_turn_results = []
                     
                     if move and game_state == GameStates.PLAYERS_TURN:
                         dx, dy = move  # action.get("move")で取得した値がdx, dyに代入される
@@ -100,7 +109,8 @@ def main():
                             target = get_blocking_entities_at_location(entities, destination_x, destination_y)
 
                             if target:
-                                player.fighter.attack(target)
+                                attack_results = player.fighter.attack(target)
+                                player_turn_results.extend(attack_results)
                             else:
                                 player.move(dx, dy)
 
@@ -114,12 +124,49 @@ def main():
                     if fullscreen:
                         libtcod.console_set_fullscreen(not libtcod.console_is_fullscreen())
 
+                    for player_turn_result in player_turn_results:
+                        message = player_turn_result.get("message")
+                        dead_entity = player_turn_result.get("dead")
+
+                        if message:
+                            print(message)
+
+                        if dead_entity:
+                            if dead_entity == player:
+                                message, game_state = kill_player(dead_entity)
+                            else:
+                                message = kill_monster(dead_entity)
+
+                            print(message)
+
                     if game_state == GameStates.ENEMY_TURN:
                         for entity in entities:
                             if entity.ai:
-                                entity.ai.take_turn(player, fov_map, game_map, entities)
-                                
-                        game_state = GameStates.PLAYERS_TURN
+                                enemy_turn_results = entity.ai.take_turn(player, fov_map, game_map, entities)
+
+                                for enemy_turn_result in enemy_turn_results:
+                                    message = enemy_turn_result.get("message")
+                                    dead_entity = enemy_turn_result.get("dead")
+
+                                    if message:
+                                        print(message)
+
+                                    if dead_entity:
+                                        if dead_entity == player:
+                                            message, game_state = kill_player(dead_entity)
+                                        else:
+                                            message = kill_monster(dead_entity)
+
+                                        print(message)
+
+                                        if game_state == GameStates.PLAYERS_DEAD:
+                                            break
+
+                                if game_state == GameStates.PLAYERS_DEAD:
+                                    break
+
+                        else:
+                            game_state = GameStates.PLAYERS_TURN
 
 
 
