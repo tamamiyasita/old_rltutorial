@@ -16,9 +16,9 @@ def main():
     screen_width = 80
     screen_height = 70
 
-    # bar_width = 20
-    # panel_height = 7
-    # panel_y = screen_height - panel_height
+    bar_width = 20
+    panel_height = 7
+    panel_y = screen_height - panel_height
 
     map_width = 80
     map_height = 43
@@ -50,7 +50,7 @@ def main():
     libtcod.console_set_custom_font("arial10x10.png", libtcod.FONT_TYPE_GRAYSCALE | libtcod.FONT_LAYOUT_TCOD)
 
     game_state = GameStates.PLAYERS_TURN
-    # panel = libtcod.console_new(screen_width, panel_height)
+    panel = libtcod.console_new(screen_width, panel_height)
 
     # ここで実際に画面を作成する、画面サイズとタイトルとフルスクリーンとレンダラーと画面の垂直同期を指定している
     with libtcod.console_init_root(screen_width, screen_height, "libtcod チュートリアル改訂",
