@@ -5,6 +5,7 @@ from components.fighter import Fighter
 from death_functions import kill_monster, kill_player
 from entity import Entity, get_blocking_entities_at_location
 from fov_functions import initialize_fov, recompute_fov
+from game_messages import MessageLog
 from game_states import GameStates
 from input_handlers import handle_keys
 from map_objects.game_map import GameMap
@@ -20,6 +21,10 @@ def main():
     panel_height = 7
     panel_y = screen_height - panel_height
 
+    message_x = bar_width + 2
+    message_width = screen_width - bar_width - 2
+    message_height = panel_height - 1
+
     map_width = 80
     map_height = 43
 
@@ -33,6 +38,8 @@ def main():
 
     max_monsters_per_room = 3
 
+    mouse = libtcod.event.get_mouse_state
+
     # 壁とタイルの色を初期化
     colors = {
         "dark_wall": libtcod.Color(0, 0, 100),
@@ -43,19 +50,26 @@ def main():
 
     fighter_component = Fighter(hp=30, defense=2, power=5)
     player = Entity(0, 0, "@", libtcod.green, "player", blocks=True, render_order=RenderOrder.ACTOR, fighter=fighter_component)
-    npc = Entity(0, 0, "@", libtcod.yellow, "npc", blocks=True)
-    tama = Entity(0, 0, "C", libtcod.white, "tama")
+    npc = Entity(0, 0, "@", libtcod.yellow, "npc", blocks=True, render_order=RenderOrder.ACTOR)
+    tama = Entity(0, 0, "C", libtcod.white, "tama", blocks=False, render_order=RenderOrder.ACTOR)
     entities = [player, npc, tama]
     # フォントの指定と(libtcod.FONT_TYPE_GRAYSCALE | libtcod.FONT_LAYOUT_TCOD）でどのタイプのファイルを読み取るのかを伝える
     libtcod.console_set_custom_font("arial10x10.png", libtcod.FONT_TYPE_GRAYSCALE | libtcod.FONT_LAYOUT_TCOD)
 
     game_state = GameStates.PLAYERS_TURN
-    panel = libtcod.console_new(screen_width, panel_height)
+    panel = libtcod.console.Console(screen_width, panel_height)
+
+
+
+
+
 
     # ここで実際に画面を作成する、画面サイズとタイトルとフルスクリーンとレンダラーと画面の垂直同期を指定している
     with libtcod.console_init_root(screen_width, screen_height, "libtcod チュートリアル改訂",
                                     fullscreen=False, renderer=libtcod.RENDERER_SDL2, vsync=False
-                                    )as con:
+                                    ) as con:
+                                    
+        
 
         # ゲームマップの初期化
         game_map = GameMap(map_width, map_height)
@@ -66,14 +80,21 @@ def main():
 
         fov_map = initialize_fov(game_map)
 
+        message_log = MessageLog(message_x, message_width, message_height)
+
+
+
+
         # ゲームループと呼ばれるもの、ウィンドウを閉じるまでループする
         while True:
             # 視覚の計算
             if fov_recompute:
                 recompute_fov(fov_map, player.x, player.y, fov_radius, fov_light_walls, fov_algorithm)
-
+                
+            mouse = libtcod.event.get_mouse_state()
             # entityをここから呼び出す
-            render_all(con, entities, player, game_map, fov_map, fov_recompute, screen_width, screen_height, colors)
+            render_all(con, panel, entities, player, game_map, fov_map, fov_recompute, message_log, screen_width,
+                       screen_height, bar_width, panel_height, panel_y, mouse, colors)
 
             fov_recompute = False
 
@@ -87,6 +108,9 @@ def main():
             for events in libtcod.event.get():
                 if events.type == "QUIT":
                     raise SystemExit()
+
+                # if events.type == "MOUSESTATE":
+                #     event.get_mouse_state()
 
                 if events.type == "KEYDOWN":
 
@@ -129,7 +153,7 @@ def main():
                         dead_entity = player_turn_result.get("dead")
 
                         if message:
-                            print(message)
+                            message_log.add_message(message)
 
                         if dead_entity:
                             if dead_entity == player:
@@ -137,7 +161,7 @@ def main():
                             else:
                                 message = kill_monster(dead_entity)
 
-                            print(message)
+                            message_log.add_message(message)
 
                     if game_state == GameStates.ENEMY_TURN:
                         for entity in entities:
@@ -149,7 +173,7 @@ def main():
                                     dead_entity = enemy_turn_result.get("dead")
 
                                     if message:
-                                        print(message)
+                                        message_log.add_message(message)
 
                                     if dead_entity:
                                         if dead_entity == player:
@@ -157,7 +181,7 @@ def main():
                                         else:
                                             message = kill_monster(dead_entity)
 
-                                        print(message)
+                                        message_log.add_message(message)
 
                                         if game_state == GameStates.PLAYERS_DEAD:
                                             break
