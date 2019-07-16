@@ -1,4 +1,5 @@
 import tcod as libtcod
+import tcod.event as event
 import itertools
 from enum import Enum, auto
 
@@ -8,23 +9,34 @@ class RenderOrder(Enum):
 	ITEM = auto()
 	ACTOR = auto()
 
-# def render_bar(panel, x, y, total_width, name, value, maxmum, bar_color, back_color):
-# 	bar_width = int(float(value) / maximum * total_width)
+def get_names_under_mouse(mouse, entities, fov_map):
+	(x, y) = (mouse.pixel)
 
-# 	libtcod.console_set_default_background(panel, back_color)
-# 	libtcod.console_rect(panel, x, y, total_width, 1, False, libtcod.BKGND_SCREEN)
+	names = [entity.name for entity in entities
+			 if entity.x == x and entity.y == y and libtcod.map_is_in_fov(fov_map, entity.x, entity.y)]
+	names = ", ".join(names)
 
-# 	libtcod.console_set_default_background(panel, bar_color)
-# 	if bar_width > 0:
-# 		libtcod.console_rect(panel, x, y, bar_width, 1, False, libtcod.BKGND_SCREEN)
+	return names.capitalize()
 
-# 	libtcod.console_set_default_foreground(panel, libtcod.white)
-# 	libtcod.console_print_ex(panel, int(x + total_width / 2), y, libtcod.BKGND_NONE, libtcod.CENTER,
-# 							 "{0}: {1}/{2}".format(name, value, maximum))
+
+def render_bar(panel, x, y, total_width, name, value, maximum, bar_color, back_color):
+	bar_width = int(float(value) / maximum * total_width)
+
+	libtcod.console_set_default_background(panel, back_color)
+	libtcod.console_rect(panel, x, y, total_width, 1, False, libtcod.BKGND_SCREEN)
+
+	libtcod.console_set_default_background(panel, bar_color)
+	if bar_width > 0:
+		libtcod.console_rect(panel, x, y, bar_width, 1, False, libtcod.BKGND_SCREEN)
+
+	libtcod.console_set_default_foreground(panel, libtcod.white)
+	libtcod.console_print_ex(panel, int(x + total_width / 2), y, libtcod.BKGND_NONE, libtcod.CENTER,
+							 "{0}: {1}/{2}".format(name, value, maximum))
 	
 
 
-def render_all(con, entities, player, game_map, fov_map, fov_recompute, screen_width, screen_height, colors):
+def render_all(con, panel, entities, player, game_map, fov_map, fov_recompute, message_log, screen_width, screen_height,
+			   bar_width, panel_height, panel_y, mouse, colors):
 	# 視野内かどうかでタイルの明暗を変える
 	if fov_recompute:
 		for y, x in itertools.product(range(game_map.height), range(game_map.width)):
@@ -50,12 +62,28 @@ def render_all(con, entities, player, game_map, fov_map, fov_recompute, screen_w
 	for entity in entities_in_render_order:
 		draw_entity(con, entity, fov_map)
 
-	libtcod.console_set_default_foreground(con, libtcod.white)
-	libtcod.console_print_ex(con, 1, screen_height - 2, libtcod.BKGND_NONE, libtcod.LEFT,
-							"HP: {0:02}/{1:02}".format(player.fighter.hp, player.fighter.max_hp))
-
 	# 実際に画面に描画するコマンド、コンソールを指定してx,yの0からscreenまでの描画範囲を指定、後ろの0は高さ幅などの設定(0で最大)
 	libtcod.console_blit(con, 0, 0, screen_width, screen_height, 0, 0, 0)
+
+	# HPパネルを表示する
+	libtcod.console_set_default_background(panel, libtcod.black)
+	libtcod.console_clear(panel)
+
+	# 一度に一行ずつログを表示
+	y = 1
+	for message in message_log.messages:
+		libtcod.console_set_default_foreground(panel, message.color)
+		libtcod.console_print_ex(panel, message_log.x, y, libtcod.BKGND_NONE, libtcod.LEFT, message.text)
+		y += 1
+
+	render_bar(panel, 1, 1, bar_width, "HP", player.fighter.hp, player.fighter.max_hp,
+			   libtcod.light_red, libtcod.darker_red)
+
+	libtcod.console_set_default_foreground(panel, libtcod.light_gray)
+	libtcod.console_print_ex(panel, 1, 0, libtcod.BKGND_NONE, libtcod.LEFT,
+							 get_names_under_mouse(mouse, entities, fov_map))
+
+	libtcod.console_blit(panel, 0, 0, screen_width, panel_height, 0, 0, panel_y)
 
 def clear_all(con, entities):
 	# 下記のclear_entityを使って描画された全てのentityをクリアするためのループ

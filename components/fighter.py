@@ -1,3 +1,8 @@
+import tcod as libtcod
+
+from game_messages import Message
+
+
 class Fighter:
     def __init__(self, hp, defense, power):
         self.max_hp = hp
@@ -21,12 +26,12 @@ class Fighter:
         damage = self.power - target.fighter.defense
 
         if damage > 0:
-            results.append({"message": "{0} attacks {1} for {2} hit points.".format(
-                self.owner.name.capitalize(), target.name, str(damage))})
+            results.append({"message": Message("{0} attacks {1} for {2} hit points.".format(
+                           self.owner.name.capitalize(), target.name, str(damage)), libtcod.white)})
             results.extend(target.fighter.take_damage(damage))
         else:
-            results.append({"message": "{0} attacks {1} but does no damege.".format(
-                self.owner.name.capitalize(), target.name)})
+            results.append({"message": Message("{0} attacks {1} but does no damege.".format(
+                           self.owner.name.capitalize(), target.name), libtcod.white)})
 
         return results
 
