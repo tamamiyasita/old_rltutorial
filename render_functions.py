@@ -10,7 +10,8 @@ class RenderOrder(Enum):
 	ACTOR = auto()
 
 def get_names_under_mouse(mouse, entities, fov_map):
-	(x, y) = (mouse.pixel)
+	# マウスのタイル座標をx,yに指定する
+	(x, y) = (mouse.tile)
 
 	names = [entity.name for entity in entities
 			 if entity.x == x and entity.y == y and libtcod.map_is_in_fov(fov_map, entity.x, entity.y)]

@@ -29,7 +29,7 @@ class GameMap:
         rooms = []
         num_rooms = 0
 
-        for r in range(max_rooms):
+        for _ in range(max_rooms):
             # ランダムで幅と高さを決める
             w = randint(room_min_size, room_max_size)
             h = randint(room_min_size, room_max_size)
@@ -71,6 +71,7 @@ class GameMap:
                         self.create_v_tunnel(prev_y, new_y, prev_x)
                         self.create_h_tunnel(prev_x, new_x, new_y)
 
+                # ここでモンスターたちを部屋に配置する
                 self.place_entities(new_room, entities, max_monsters_per_room)
 
                 # 新しい部屋をリストに追加する
@@ -101,12 +102,12 @@ class GameMap:
         # モンスターを何体部屋に配置するかランダムに決める
         number_of_monsters = randint(0, max_monsters_per_room)
 
-        for i in range(number_of_monsters):
+        for _ in range(number_of_monsters):
             # 部屋のどのあたりに配置するかランダムに決める
             x = randint(room.x1 + 1, room.x2 - 1)
             y = randint(room.y1 + 1, room.y2 - 1)
 
-            # ランダムな場所を選びそこにオブジェクトが無ければモンスターを配置する
+            # ランダムな場所を選びそこにモンスターとかがいなければモンスターを配置する
             if not any([entity for entity in entities if entity.x == x and entity.y == y]):
                 # オークを80％トロールを20％で配置
                 if randint(0, 100) < 80:
