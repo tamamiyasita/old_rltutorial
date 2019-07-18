@@ -37,6 +37,7 @@ def main():
     fov_radius = 10
 
     max_monsters_per_room = 3
+    max_items_per_room = 2
 
     # 壁とタイルの色を初期化
     colors = {
@@ -48,9 +49,9 @@ def main():
 
     fighter_component = Fighter(hp=30, defense=2, power=5)
     player = Entity(0, 0, "@", libtcod.green, "player", blocks=True, render_order=RenderOrder.ACTOR, fighter=fighter_component)
-    npc = Entity(0, 0, "C", libtcod.yellow, "miya", blocks=False, render_order=RenderOrder.ACTOR)
+    miya = Entity(0, 0, "C", libtcod.yellow, "miya", blocks=False, render_order=RenderOrder.ACTOR)
     tama = Entity(0, 0, "C", libtcod.white, "tama", blocks=False, render_order=RenderOrder.ACTOR)
-    entities = [player, npc, tama]
+    entities = [player, miya, tama]
     # フォントの指定と(libtcod.FONT_TYPE_GRAYSCALE | libtcod.FONT_LAYOUT_TCOD）でどのタイプのファイルを読み取るのかを伝える
     libtcod.console_set_custom_font("arial10x10.png", libtcod.FONT_TYPE_GRAYSCALE | libtcod.FONT_LAYOUT_TCOD)
 
@@ -71,7 +72,8 @@ def main():
 
         # ゲームマップの初期化
         game_map = GameMap(map_width, map_height)
-        game_map.make_map(max_rooms, room_min_size, room_max_size, map_width, map_height, player, npc, tama, entities, max_monsters_per_room)
+        game_map.make_map(max_rooms, room_min_size, room_max_size, map_width, map_height, player, miya, tama, entities,
+                          max_monsters_per_room, max_items_per_room)
 
         # 視覚の計算
         fov_recompute = True
