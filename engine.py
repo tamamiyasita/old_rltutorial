@@ -38,8 +38,6 @@ def main():
 
     max_monsters_per_room = 3
 
-    mouse = libtcod.event.get_mouse_state
-
     # 壁とタイルの色を初期化
     colors = {
         "dark_wall": libtcod.Color(0, 0, 100),
@@ -50,7 +48,7 @@ def main():
 
     fighter_component = Fighter(hp=30, defense=2, power=5)
     player = Entity(0, 0, "@", libtcod.green, "player", blocks=True, render_order=RenderOrder.ACTOR, fighter=fighter_component)
-    npc = Entity(0, 0, "@", libtcod.yellow, "npc", blocks=True, render_order=RenderOrder.ACTOR)
+    npc = Entity(0, 0, "C", libtcod.yellow, "miya", blocks=False, render_order=RenderOrder.ACTOR)
     tama = Entity(0, 0, "C", libtcod.white, "tama", blocks=False, render_order=RenderOrder.ACTOR)
     entities = [player, npc, tama]
     # フォントの指定と(libtcod.FONT_TYPE_GRAYSCALE | libtcod.FONT_LAYOUT_TCOD）でどのタイプのファイルを読み取るのかを伝える
@@ -90,8 +88,10 @@ def main():
             # 視覚の計算
             if fov_recompute:
                 recompute_fov(fov_map, player.x, player.y, fov_radius, fov_light_walls, fov_algorithm)
-                
+
+            # ループに記述することでマウスの情報を取得し続ける
             mouse = libtcod.event.get_mouse_state()
+
             # entityをここから呼び出す
             render_all(con, panel, entities, player, game_map, fov_map, fov_recompute, message_log, screen_width,
                        screen_height, bar_width, panel_height, panel_y, mouse, colors)
@@ -126,9 +126,11 @@ def main():
                     if move and game_state == GameStates.PLAYERS_TURN:
                         dx, dy = move  # action.get("move")で取得した値がdx, dyに代入される
                         
+                        # プレイヤーの位置＋dx,dyで移動位置を決める
                         destination_x = player.x + dx
                         destination_y = player.y + dy
 
+                        
                         if not game_map.is_blocked(destination_x, destination_y):
                             target = get_blocking_entities_at_location(entities, destination_x, destination_y)
 
