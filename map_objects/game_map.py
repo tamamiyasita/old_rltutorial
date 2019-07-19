@@ -4,6 +4,7 @@ from random import randint
 
 from components.ai import BasicMonster
 from components.fighter import Fighter
+from components.item import Item
 
 from entity import Entity
 
@@ -108,16 +109,6 @@ class GameMap:
             x = randint(room.x1 + 1, room.x2 - 1)
             y = randint(room.y1 + 1, room.y2 - 1)
 
-        for _ in range(number_of_items):
-            x = randint(room.x1 + 1, room.x2 - 1)
-            y = randint(room.y1 + 1, room.y2 - 1)
-
-            if not any([entity for entity in entities if entity.x == x and entity.y == y]):
-                if randint(0, 100) < 30:
-                    item = Entity(x, y, "!", libtcod.violet, "Healing Potion", RenderOrder.ITEM)
-
-                    entities.append(item)
-
             # ランダムな場所を選びそこにモンスターとかアイテムとかがなければ配置する
             if not any([entity for entity in entities if entity.x == x and entity.y == y]):
                 # オークを80％トロールを20％で配置
@@ -136,6 +127,17 @@ class GameMap:
                 # entitiesに格納する
                 entities.append(monster)
 
+        for _ in range(number_of_items):
+            x = randint(room.x1 + 1, room.x2 - 1)
+            y = randint(room.y1 + 1, room.y2 - 1)
+
+            if not any([entity for entity in entities if entity.x == x and entity.y == y]):
+                if randint(0, 100) < 30:
+                    item_component = Item()
+                    item = Entity(x, y, "!", libtcod.violet, "Healing Potion", render_order=RenderOrder.ITEM,
+                                  item=item_component)
+
+                    entities.append(item)
 
 
     def is_blocked(self, x, y):
