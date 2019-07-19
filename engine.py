@@ -2,10 +2,11 @@ import tcod as libtcod
 import tcod.event as event
 
 from components.fighter import Fighter
+from components.inventory import Inventory
 from death_functions import kill_monster, kill_player
 from entity import Entity, get_blocking_entities_at_location
 from fov_functions import initialize_fov, recompute_fov
-from game_messages import MessageLog
+from game_messages import Message, MessageLog
 from game_states import GameStates
 from input_handlers import handle_keys
 from map_objects.game_map import GameMap
@@ -48,7 +49,9 @@ def main():
     }
 
     fighter_component = Fighter(hp=30, defense=2, power=5)
-    player = Entity(0, 0, "@", libtcod.green, "player", blocks=True, render_order=RenderOrder.ACTOR, fighter=fighter_component)
+    inventory_component = Inventory(26)
+    player = Entity(0, 0, "@", libtcod.green, "player", blocks=True, render_order=RenderOrder.ACTOR,
+                    fighter=fighter_component, inventory=inventory_component)
     miya = Entity(0, 0, "C", libtcod.yellow, "miya", blocks=False, render_order=RenderOrder.ACTOR)
     tama = Entity(0, 0, "C", libtcod.white, "tama", blocks=False, render_order=RenderOrder.ACTOR)
     entities = [player, miya, tama]
@@ -59,16 +62,10 @@ def main():
     panel = libtcod.console.Console(screen_width, panel_height)
 
 
-
-
-
-
     # ここで実際に画面を作成する、画面サイズとタイトルとフルスクリーンとレンダラーと画面の垂直同期を指定している
     with libtcod.console_init_root(screen_width, screen_height, "libtcod チュートリアル改訂",
                                     fullscreen=False, renderer=libtcod.RENDERER_SDL2, vsync=False
                                     ) as con:
-                                    
-        
 
         # ゲームマップの初期化
         game_map = GameMap(map_width, map_height)
@@ -81,8 +78,6 @@ def main():
         fov_map = initialize_fov(game_map)
 
         message_log = MessageLog(message_x, message_width, message_height)
-
-
 
 
         # ゲームループと呼ばれるもの、ウィンドウを閉じるまでループする
@@ -111,15 +106,13 @@ def main():
                 if events.type == "QUIT":
                     raise SystemExit()
 
-                # if events.type == "MOUSESTATE":
-                #     event.get_mouse_state()
-
                 if events.type == "KEYDOWN":
 
                     # handle_keysから各種変数を作っていく
                     action = handle_keys(events)
 
                     move = action.get("move")
+                    pickup = action.get("pickup")
                     exit = action.get("exit")
                     fullscreen = action.get("fullscreen")
 
@@ -145,6 +138,15 @@ def main():
                                 fov_recompute = True
 
                             game_state = GameStates.ENEMY_TURN
+                    elif pickup and game_state == GameStates.PLAYERS_TURN:
+                        for entity in entities:
+                            if entity.item and entity.x == player.x and entity.y == player.y:
+                                pickup_results = player.inventory.add_item(entity)
+                                player_turn_results.extend(pickup_results)
+
+                                break
+                        else:
+                            message_log.add_message(Message("There is nothing here to pick up.", libtcod.yellow))
 
                     if exit:
                         raise SystemExit()
@@ -155,6 +157,7 @@ def main():
                     for player_turn_result in player_turn_results:
                         message = player_turn_result.get("message")
                         dead_entity = player_turn_result.get("dead")
+                        item_added = player_turn_result.get("item_added")
 
                         if message:
                             message_log.add_message(message)
@@ -166,6 +169,11 @@ def main():
                                 message = kill_monster(dead_entity)
 
                             message_log.add_message(message)
+
+                        if item_added:
+                            entities.remove(item_added)
+
+                            game_state = GameStates.ENEMY_TURN
 
                     if game_state == GameStates.ENEMY_TURN:
                         for entity in entities:

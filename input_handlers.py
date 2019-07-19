@@ -28,6 +28,9 @@ def handle_keys(events):
     elif events.sym == event.K_PAGEDOWN:
         return {"move": (1, 1)}
 
+    if events.sym == event.K_g:
+        return {"pickup": True}
+
     # ALT + Enterでフルスクリーン
     if events.sym == event.K_RETURN and event.KMOD_LALT:
         return {"fullscreen": True}
