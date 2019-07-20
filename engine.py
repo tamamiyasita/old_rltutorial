@@ -59,6 +59,7 @@ def main():
     libtcod.console_set_custom_font("arial10x10.png", libtcod.FONT_TYPE_GRAYSCALE | libtcod.FONT_LAYOUT_TCOD)
 
     game_state = GameStates.PLAYERS_TURN
+    previous_game_state = game_state
     panel = libtcod.console.Console(screen_width, panel_height)
 
 
@@ -91,7 +92,7 @@ def main():
 
             # entityをここから呼び出す
             render_all(con, panel, entities, player, game_map, fov_map, fov_recompute, message_log, screen_width,
-                       screen_height, bar_width, panel_height, panel_y, mouse, colors)
+                       screen_height, bar_width, panel_height, panel_y, mouse, colors, game_state)
 
             fov_recompute = False
 
@@ -113,6 +114,7 @@ def main():
 
                     move = action.get("move")
                     pickup = action.get("pickup")
+                    show_inventory = action.get("show_inventory")
                     exit = action.get("exit")
                     fullscreen = action.get("fullscreen")
 
@@ -147,9 +149,16 @@ def main():
                                 break
                         else:
                             message_log.add_message(Message("There is nothing here to pick up.", libtcod.yellow))
+                    
+                    if show_inventory:
+                        previous_game_state = game_state
+                        game_state = GameStates.SHOW_INVENTORY
 
                     if exit:
-                        raise SystemExit()
+                        if game_state == GameStates.SHOW_INVENTORY:
+                            game_state = previous_game_state
+                        else:
+                            return False
 
                     if fullscreen:
                         libtcod.console_set_fullscreen(not libtcod.console_is_fullscreen())

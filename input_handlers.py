@@ -31,6 +31,9 @@ def handle_keys(events):
     if events.sym == event.K_g:
         return {"pickup": True}
 
+    elif events.sym == event.K_i:
+        return {"show_inventory": True}
+
     # ALT + Enterでフルスクリーン
     if events.sym == event.K_RETURN and event.KMOD_LALT:
         return {"fullscreen": True}
