@@ -110,11 +110,12 @@ def main():
                 if events.type == "KEYDOWN":
 
                     # handle_keysから各種変数を作っていく
-                    action = handle_keys(events)
+                    action = handle_keys(events, game_state)
 
                     move = action.get("move")
                     pickup = action.get("pickup")
                     show_inventory = action.get("show_inventory")
+                    inventory_index = action.get("inventory_index")
                     exit = action.get("exit")
                     fullscreen = action.get("fullscreen")
 
@@ -154,11 +155,16 @@ def main():
                         previous_game_state = game_state
                         game_state = GameStates.SHOW_INVENTORY
 
+                    if inventory_index is not None and previous_game_state != GameStates.PLAYERS_DEAD and inventory_index < len(
+                            player.inventory.items):
+                        item = player.inventory.items[inventory_index]
+                        print(item)
+
                     if exit:
                         if game_state == GameStates.SHOW_INVENTORY:
                             game_state = previous_game_state
                         else:
-                            return False
+                            return True
 
                     if fullscreen:
                         libtcod.console_set_fullscreen(not libtcod.console_is_fullscreen())
