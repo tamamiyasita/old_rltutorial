@@ -13,6 +13,7 @@ from map_objects.game_map import GameMap
 from render_functions import clear_all, render_all, RenderOrder
 
 
+
 def main():
     # 画面サイズの変数
     screen_width = 80
