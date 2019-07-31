@@ -60,7 +60,7 @@ def main():
     libtcod.console_set_custom_font("arial10x10.png", libtcod.FONT_TYPE_GRAYSCALE | libtcod.FONT_LAYOUT_TCOD)
 
     game_state = GameStates.PLAYERS_TURN
-    previous_game_state = game_state
+    
     panel = libtcod.console.Console(screen_width, panel_height)
 
 
@@ -80,7 +80,9 @@ def main():
         fov_map = initialize_fov(game_map)
 
         message_log = MessageLog(message_x, message_width, message_height)
-
+        
+        game_state = GameStates.PLAYERS_TURN
+        previous_game_state = game_state
 
         # ゲームループと呼ばれるもの、ウィンドウを閉じるまでループする
         while True:
@@ -142,6 +144,7 @@ def main():
                                 fov_recompute = True
 
                             game_state = GameStates.ENEMY_TURN
+
                     elif pickup and game_state == GameStates.PLAYERS_TURN:
                         for entity in entities:
                             if entity.item and entity.x == player.x and entity.y == player.y:
@@ -166,6 +169,7 @@ def main():
                     if exit:
                         if game_state == GameStates.SHOW_INVENTORY:
                             game_state = previous_game_state
+                            print(item)
                             
                         else:
                             return True
