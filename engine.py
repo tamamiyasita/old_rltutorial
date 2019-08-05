@@ -65,169 +65,183 @@ def main():
 
 
     # ここで実際に画面を作成する、画面サイズとタイトルとフルスクリーンとレンダラーと画面の垂直同期を指定している
-    with libtcod.console_init_root(screen_width, screen_height, "libtcod チュートリアル改訂",
-                                    fullscreen=False, renderer=libtcod.RENDERER_SDL2, vsync=False
-                                    ) as con:
+    libtcod.console_init_root(screen_width, screen_height, "libtcod チュートリアル改訂", False)
 
-        # ゲームマップの初期化
-        game_map = GameMap(map_width, map_height)
-        game_map.make_map(max_rooms, room_min_size, room_max_size, map_width, map_height, player, miya, tama, entities,
-                          max_monsters_per_room, max_items_per_room)
+    con = libtcod.console.Console(screen_width, screen_height)
 
-        # 視覚の計算
-        fov_recompute = True
+    # ゲームマップの初期化
+    game_map = GameMap(map_width, map_height)
+    game_map.make_map(max_rooms, room_min_size, room_max_size, map_width, map_height, player, miya, tama, entities,
+                        max_monsters_per_room, max_items_per_room)
 
-        fov_map = initialize_fov(game_map)
+    # 視覚の計算
+    fov_recompute = True
 
-        message_log = MessageLog(message_x, message_width, message_height)
-        
-        game_state = GameStates.PLAYERS_TURN
-        previous_game_state = game_state
+    fov_map = initialize_fov(game_map)
+
+    message_log = MessageLog(message_x, message_width, message_height)
+    
+    game_state = GameStates.PLAYERS_TURN
+    previous_game_state = game_state
 
         # ゲームループと呼ばれるもの、ウィンドウを閉じるまでループする
-        while True:
-            # 視覚の計算
-            if fov_recompute:
-                recompute_fov(fov_map, player.x, player.y, fov_radius, fov_light_walls, fov_algorithm)
+    while True:
+        # 視覚の計算
+        if fov_recompute:
+            recompute_fov(fov_map, player.x, player.y, fov_radius, fov_light_walls, fov_algorithm)
 
-            # ループに記述することでマウスの情報を取得し続ける
-            mouse = libtcod.event.get_mouse_state()
+        # ループに記述することでマウスの情報を取得し続ける
+        mouse = libtcod.event.get_mouse_state()
 
-            # entityをここから呼び出す
-            render_all(con, panel, entities, player, game_map, fov_map, fov_recompute, message_log, screen_width,
-                       screen_height, bar_width, panel_height, panel_y, mouse, colors, game_state)
+        # entityをここから呼び出す
+        render_all(con, panel, entities, player, game_map, fov_map, fov_recompute, message_log, screen_width,
+                    screen_height, bar_width, panel_height, panel_y, mouse, colors, game_state)
 
-            fov_recompute = False
+        fov_recompute = False
 
-            # 画面上に描画する機能
-            libtcod.console_flush()
+        # 画面上に描画する機能
+        libtcod.console_flush()
 
-            # 移動後のentitiesをスペース（" "）で上書きして消す
-            clear_all(con, entities)
+        # 移動後のentitiesをスペース（" "）で上書きして消す
+        clear_all(con, entities)
 
-            # event.get()イテレータをループで回し各キーの押下判定を行う
-            for events in libtcod.event.get():
-                if events.type == "QUIT":
-                    raise SystemExit()
+        # event.get()イテレータをループで回し各キーの押下判定を行う
+        for events in libtcod.event.get():
+            if events.type == "QUIT":
+                raise SystemExit()
 
-                if events.type == "KEYDOWN":
+            if events.type == "KEYDOWN":
 
-                    # handle_keysから各種変数を作っていく
-                    action = handle_keys(events, game_state)
+                # handle_keysから各種変数を作っていく
+                action = handle_keys(events, game_state)
 
-                    move = action.get("move")
-                    pickup = action.get("pickup")
-                    show_inventory = action.get("show_inventory")
-                    inventory_index = action.get("inventory_index")
-                    exit = action.get("exit")
-                    fullscreen = action.get("fullscreen")
+                move = action.get("move")
+                pickup = action.get("pickup")
+                show_inventory = action.get("show_inventory")
+                inventory_index = action.get("inventory_index")
+                drop_inventory = action.get("drop_inventory")
+                exit = action.get("exit")
+                fullscreen = action.get("fullscreen")
 
-                    player_turn_results = []
+                player_turn_results = []
+                
+                if move and game_state == GameStates.PLAYERS_TURN:
+                    dx, dy = move  # action.get("move")で取得した値がdx, dyに代入される
                     
-                    if move and game_state == GameStates.PLAYERS_TURN:
-                        dx, dy = move  # action.get("move")で取得した値がdx, dyに代入される
-                        
-                        # プレイヤーの位置＋dx,dyで移動位置を決める
-                        destination_x = player.x + dx
-                        destination_y = player.y + dy
+                    # プレイヤーの位置＋dx,dyで移動位置を決める
+                    destination_x = player.x + dx
+                    destination_y = player.y + dy
 
-                        
-                        if not game_map.is_blocked(destination_x, destination_y):
-                            target = get_blocking_entities_at_location(entities, destination_x, destination_y)
+                    
+                    if not game_map.is_blocked(destination_x, destination_y):
+                        target = get_blocking_entities_at_location(entities, destination_x, destination_y)
 
-                            if target:
-                                attack_results = player.fighter.attack(target)
-                                player_turn_results.extend(attack_results)
-                            else:
-                                player.move(dx, dy)
-
-                                fov_recompute = True
-
-                            game_state = GameStates.ENEMY_TURN
-
-                    elif pickup and game_state == GameStates.PLAYERS_TURN:
-                        for entity in entities:
-                            if entity.item and entity.x == player.x and entity.y == player.y:
-                                pickup_results = player.inventory.add_item(entity)
-                                player_turn_results.extend(pickup_results)
-
-                                break
+                        if target:
+                            attack_results = player.fighter.attack(target)
+                            player_turn_results.extend(attack_results)
                         else:
-                            message_log.add_message(Message("There is nothing here to pick up.", libtcod.yellow))
-                    
-                    if show_inventory:
-                        previous_game_state = game_state
-                        game_state = GameStates.SHOW_INVENTORY
+                            player.move(dx, dy)
 
-                    if inventory_index is not None and previous_game_state != GameStates.PLAYERS_DEAD and inventory_index < len(
-                            player.inventory.items):
-                        item = player.inventory.items[inventory_index]
+                            fov_recompute = True
+
+                        game_state = GameStates.ENEMY_TURN
+
+                elif pickup and game_state == GameStates.PLAYERS_TURN:
+                    for entity in entities:
+                        if entity.item and entity.x == player.x and entity.y == player.y:
+                            pickup_results = player.inventory.add_item(entity)
+                            player_turn_results.extend(pickup_results)
+
+                            break
+                    else:
+                        message_log.add_message(Message("There is nothing here to pick up.", libtcod.yellow))
+                
+                if show_inventory:
+                    previous_game_state = game_state
+                    game_state = GameStates.SHOW_INVENTORY
+
+                if drop_inventory:
+                    previous_game_state = game_state
+                    game_state = GameStates.DROP_INVENTORY
+
+                if inventory_index is not None and previous_game_state != GameStates.PLAYERS_DEAD and inventory_index < len(
+                        player.inventory.items):
+                    item = player.inventory.items[inventory_index]
+
+                    if game_state == GameStates.SHOW_INVENTORY:
                         player_turn_results.extend(player.inventory.use(item))
+                    elif game_state == GameStates.DROP_INVENTORY:
+                        player_turn_results.extend(player.inventory.drop_item(item))
+                if exit:
+                    if game_state in (GameStates.SHOW_INVENTORY, GameStates.DROP_INVENTORY):
+                        game_state = previous_game_state
+                        
+                        
+                    else:
+                        return True
 
-                    if exit:
-                        if game_state == GameStates.SHOW_INVENTORY:
-                            game_state = previous_game_state
-                            
-                            
+                if fullscreen:
+                    libtcod.console_set_fullscreen(not libtcod.console_is_fullscreen())
+
+                for player_turn_result in player_turn_results:
+                    message = player_turn_result.get("message")
+                    dead_entity = player_turn_result.get("dead")
+                    item_added = player_turn_result.get("item_added")
+                    item_consumed = player_turn_result.get("consumed")
+                    item_dropped = player_turn_result.get("item_dropped")
+
+                    if message:
+                        message_log.add_message(message)
+
+                    if dead_entity:
+                        if dead_entity == player:
+                            message, game_state = kill_player(dead_entity)
                         else:
-                            return True
+                            message = kill_monster(dead_entity)
 
-                    if fullscreen:
-                        libtcod.console_set_fullscreen(not libtcod.console_is_fullscreen())
+                        message_log.add_message(message)
 
-                    for player_turn_result in player_turn_results:
-                        message = player_turn_result.get("message")
-                        dead_entity = player_turn_result.get("dead")
-                        item_added = player_turn_result.get("item_added")
-                        item_consumed = player_turn_result.get("consumed")
+                    if item_added:
+                        entities.remove(item_added)
 
-                        if message:
-                            message_log.add_message(message)
+                        game_state = GameStates.ENEMY_TURN
 
-                        if dead_entity:
-                            if dead_entity == player:
-                                message, game_state = kill_player(dead_entity)
-                            else:
-                                message = kill_monster(dead_entity)
+                    if item_consumed:
+                        game_state = GameStates.ENEMY_TURN
 
-                            message_log.add_message(message)
+                    if item_dropped:
+                        entities.append(item_dropped)
 
-                        if item_added:
-                            entities.remove(item_added)
+                        game_state = GameStates.ENEMY_TURN
 
-                            game_state = GameStates.ENEMY_TURN
+                if game_state == GameStates.ENEMY_TURN:
+                    for entity in entities:
+                        if entity.ai:
+                            enemy_turn_results = entity.ai.take_turn(player, fov_map, game_map, entities)
 
-                        if item_consumed:
-                            game_state = GameStates.ENEMY_TURN
+                            for enemy_turn_result in enemy_turn_results:
+                                message = enemy_turn_result.get("message")
+                                dead_entity = enemy_turn_result.get("dead")
 
-                    if game_state == GameStates.ENEMY_TURN:
-                        for entity in entities:
-                            if entity.ai:
-                                enemy_turn_results = entity.ai.take_turn(player, fov_map, game_map, entities)
+                                if message:
+                                    message_log.add_message(message)
 
-                                for enemy_turn_result in enemy_turn_results:
-                                    message = enemy_turn_result.get("message")
-                                    dead_entity = enemy_turn_result.get("dead")
+                                if dead_entity:
+                                    if dead_entity == player:
+                                        message, game_state = kill_player(dead_entity)
+                                    else:
+                                        message = kill_monster(dead_entity)
 
-                                    if message:
-                                        message_log.add_message(message)
+                                    message_log.add_message(message)
 
-                                    if dead_entity:
-                                        if dead_entity == player:
-                                            message, game_state = kill_player(dead_entity)
-                                        else:
-                                            message = kill_monster(dead_entity)
+                                    if game_state == GameStates.PLAYERS_DEAD:
+                                        break
 
-                                        message_log.add_message(message)
+                            if game_state == GameStates.PLAYERS_DEAD:
+                                break
 
-                                        if game_state == GameStates.PLAYERS_DEAD:
-                                            break
-
-                                if game_state == GameStates.PLAYERS_DEAD:
-                                    break
-
-                        else:
-                            game_state = GameStates.PLAYERS_TURN
+                    else:
+                        game_state = GameStates.PLAYERS_TURN
 
 
 

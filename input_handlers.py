@@ -10,7 +10,7 @@ def handle_keys(events, game_state):
     elif game_state == GameStates.PLAYERS_DEAD:
         return handle_player_dead_keys(events)
 
-    elif game_state == GameStates.SHOW_INVENTORY:
+    elif game_state in (GameStates.SHOW_INVENTORY, GameStates.DROP_INVENTORY):
         return handle_inventory_keys(events)
 
     return {}
@@ -48,8 +48,11 @@ def handle_player_turn_keys(events):
     elif events.sym == event.K_i:
         return {"show_inventory": True}
 
+    elif events.sym == event.K_d:
+        return {"drop_inventory": True}
+
     # ALT + Enterでフルスクリーン
-    if events.sym == event.K_RETURN and event.KMOD_LALT:
+    if events.sym == event.K_RETURN:
         return {"fullscreen": True}
 
     # Exitゲーム
