@@ -10,6 +10,9 @@ def handle_keys(events, game_state):
     elif game_state == GameStates.PLAYERS_DEAD:
         return handle_player_dead_keys(events)
 
+    elif game_state == GameStates.TARGETING:
+        return handle_targeting_keys(events)
+
     elif game_state in (GameStates.SHOW_INVENTORY, GameStates.DROP_INVENTORY):
         return handle_inventory_keys(events)
 
@@ -62,6 +65,12 @@ def handle_player_turn_keys(events):
     # キーが押されてない時は空の辞書を返す
     return {}
 
+def hendle_targeting_keys(events):
+    if events.sym == event.K_ESCAPE:
+        return {"exit": True}
+
+    return {}
+
 def handle_player_dead_keys(events):
     if events.sym == event.K_i:
         return {"show_inventory": True}
@@ -71,6 +80,16 @@ def handle_player_dead_keys(events):
 
     elif events.sym == event.K_ESCAPE:
         return {"exit": True}
+
+    return {}
+
+def handle_mouse(mouse):
+    (x, y) = (mouse.tile)
+
+    if event.BUTTON_LEFT:
+        return {"left_click": (x, y)}
+    elif event.BUTTON_RIGHT:
+        return {"right_click": (x, y)}
 
     return {}
 

@@ -1,5 +1,9 @@
 import tcod as libtcod
 
+from random import randint
+
+from game_messages import Message
+
 class BasicMonster:
     def take_turn(self, target, fov_map, game_map, entities):
         results = []
