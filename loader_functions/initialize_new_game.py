@@ -82,17 +82,17 @@ def get_game_variables(constants):
                     fighter=fighter_component, inventory=inventory_component)
     miya = Entity(0, 0, "C", libtcod.yellow, "miya", blocks=False, render_order=RenderOrder.ACTOR)
     tama = Entity(0, 0, "C", libtcod.white, "tama", blocks=False, render_order=RenderOrder.ACTOR)
-    entities = [player, miya, tama]
+    entities = [player]
 
     # ゲームマップの初期化
     game_map = GameMap(constants["map_width"], constants["map_height"])
 
     game_map.make_map(constants["max_rooms"], constants["room_min_size"], constants["room_max_size"],
-                      constants["map_width"], constants["map_height"], player, miya, tama, entities,
+                      constants["map_width"], constants["map_height"], player, entities,
                       constants["max_monsters_per_room"], constants["max_items_per_room"])
 
     message_log = MessageLog(constants["message_x"], constants["message_width"], constants["message_height"])
     
     game_state = GameStates.PLAYERS_TURN
 
-    return player, miya, tama, entities, game_map, message_log, game_state
+    return player, entities, game_map, message_log, game_state

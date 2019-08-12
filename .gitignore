@@ -105,3 +105,4 @@ venv.bak/
 # mypy
 .mypy_cache/
 tcod.code-workspace
+.vscode/settings.json

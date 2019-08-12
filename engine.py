@@ -126,7 +126,7 @@ def play_game(player, entities, game_map, message_log, game_state, con, panel, c
                 if take_stairs and game_state == GameStates.PLAYERS_TURN:
                     for entity in entities:
                         if entity.stairs and entity.x == player.x and entity.y == player.y:
-                            entities = game_map.next_floor(player, npc, tama, message_log, constants)
+                            entities = game_map.next_floor(player, message_log, constants)
                             fov_map = initialize_fov(game_map)
                             fov_recompute = True
                             libtcod.console_clear(con)
@@ -251,8 +251,7 @@ def main():
     panel = libtcod.console.Console(constants["screen_width"], constants["panel_height"])
 
     player = None
-    miya = None
-    tama = None
+
     entities = []
     game_map = None
     message_log = None
@@ -287,7 +286,7 @@ def main():
                     if show_load_error_message and (new_game or load_saved_game or exit_game):
                         show_load_error_message = False
                     elif new_game:
-                        player, miya, tama, entities, game_map, message_log, game_state = get_game_variables(constants)
+                        player, entities, game_map, message_log, game_state = get_game_variables(constants)
                         game_state = GameStates.PLAYERS_TURN
 
                         show_main_menu = False

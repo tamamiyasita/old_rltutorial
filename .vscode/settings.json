@@ -1,6 +1,17 @@
+
 {
-    "python.pythonPath": "C:\\Users\\user\\AppData\\Local\\Programs\\Python\\Python37-32\\python.exe",
-    "python.linting.pylintPath": "C:\\Users\\si\\kasou\\Scripts\\pylint.exe",
-    "python.linting.pylintEnabled": true,
-    "python.linting.enabled": true
+	"folders": [
+		{
+			"path": "."
+		}
+	],
+	"settings": {
+		"terminal.integrated.shellArgs.windows": [
+		  "-NoExit", "-Command", "C:/Users/si/tcod_RL/.venv/Scripts/activate"
+		],
+		"python.pythonPath": ".venv\\Scripts\\python.exe"
+	}
+	
+	
 }
+

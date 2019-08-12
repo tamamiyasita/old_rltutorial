@@ -31,7 +31,7 @@ class GameMap:
 
         return tiles
 
-    def make_map(self, max_rooms, room_min_size, room_max_size, map_width, map_height, player, npc, tama, entities,
+    def make_map(self, max_rooms, room_min_size, room_max_size, map_width, map_height, player, entities,
                  max_monsters_per_room, max_items_per_room):
         rooms = []
         num_rooms = 0
@@ -68,10 +68,7 @@ class GameMap:
                     # 初回はとりあえずplayerが居る最初の部屋の作成だけしてroomsリストに追加しnum_roomsに＋１する
                     player.x = new_x
                     player.y = new_y
-                    npc.x = new_x + 1
-                    npc.y = new_y + 1
-                    tama.x = new_x + 2
-                    tama.y = new_y + 2
+
                 else:
                     # 二回目以降に前の部屋の中心座標を変数prev_x,yに入れる(当然新しい部屋の座標はnew_x,yに入っている)
                     (prev_x, prev_y) = rooms[num_rooms - 1].center()
@@ -184,13 +181,13 @@ class GameMap:
 
         return False
 
-    def next_floor(self, player, npc, tama, message_log, constants):
+    def next_floor(self, player, message_log, constants):
         self.dungeon_level += 1
         entities = [player]
 
         self.tiles = self.initialize_tiles()
         self.make_map(constants["max_rooms"], constants["room_min_size"], constants["room_max_size"],
-                      constants["map_width"], constants["map_height"], player, npc, tama, entities,
+                      constants["map_width"], constants["map_height"], player, entities,
                       constants["max_monsters_per_room"], constants["max_items_per_room"])
 
         player.fighter.heal(player.fighter.max_hp // 2)
