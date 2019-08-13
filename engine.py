@@ -1,87 +1,39 @@
 import tcod as libtcod
 import tcod.event as event
 
-from components.fighter import Fighter
-from components.inventory import Inventory
+
 from death_functions import kill_monster, kill_player
-from entity import Entity, get_blocking_entities_at_location
+from entity import get_blocking_entities_at_location
 from fov_functions import initialize_fov, recompute_fov
-from game_messages import Message, MessageLog
+from game_messages import Message
 from game_states import GameStates
 from input_handlers import handle_keys, handle_mouse
-from map_objects.game_map import GameMap
-from render_functions import clear_all, render_all, RenderOrder
+from loader_functions.initialize_new_game import get_constants, get_game_variables
+from render_functions import clear_all, render_all
 
 
 
 def main():
-    # 画面サイズの変数
-    screen_width = 80
-    screen_height = 70
+    constants = get_constants()
 
-    bar_width = 20
-    panel_height = 7
-    panel_y = screen_height - panel_height
 
-    message_x = bar_width + 2
-    message_width = screen_width - bar_width - 2
-    message_height = panel_height - 1
-
-    map_width = 80
-    map_height = 43
-
-    room_max_size = 10
-    room_min_size = 6
-    max_rooms = 30
-
-    fov_algorithm = 0
-    fov_light_walls = True
-    fov_radius = 10
-
-    max_monsters_per_room = 3
-    max_items_per_room = 2
-
-    # 壁とタイルの色を初期化
-    colors = {
-        "dark_wall": libtcod.Color(0, 0, 100),
-        "dark_ground": libtcod.Color(50, 50, 150),
-        "light_wall": libtcod.Color(130, 110, 50),
-        "light_ground": libtcod.Color(200, 180, 50)
-    }
-
-    fighter_component = Fighter(hp=30, defense=2, power=5)
-    inventory_component = Inventory(26)
-    player = Entity(0, 0, "@", libtcod.green, "player", blocks=True, render_order=RenderOrder.ACTOR,
-                    fighter=fighter_component, inventory=inventory_component)
-    miya = Entity(0, 0, "C", libtcod.yellow, "miya", blocks=False, render_order=RenderOrder.ACTOR)
-    tama = Entity(0, 0, "C", libtcod.white, "tama", blocks=False, render_order=RenderOrder.ACTOR)
-    entities = [player, miya, tama]
     # フォントの指定と(libtcod.FONT_TYPE_GRAYSCALE | libtcod.FONT_LAYOUT_TCOD）でどのタイプのファイルを読み取るのかを伝える
     libtcod.console_set_custom_font("arial10x10.png", libtcod.FONT_TYPE_GRAYSCALE | libtcod.FONT_LAYOUT_TCOD)
 
-    game_state = GameStates.PLAYERS_TURN
-    
-    panel = libtcod.console.Console(screen_width, panel_height)
-
-
     # ここで実際に画面を作成する、画面サイズとタイトルとフルスクリーンとレンダラーと画面の垂直同期を指定している
-    libtcod.console_init_root(screen_width, screen_height, "libtcod チュートリアル改訂", False)
+    libtcod.console_init_root(constants["screen_width"], constants["screen_height"], constants["window_title"], False)
 
-    con = libtcod.console.Console(screen_width, screen_height)
+    con = libtcod.console.Console(constants["screen_width"], constants["screen_height"])
+    panel = libtcod.console.Console(constants["screen_width"], constants["panel_height"])
 
-    # ゲームマップの初期化
-    game_map = GameMap(map_width, map_height)
-    game_map.make_map(max_rooms, room_min_size, room_max_size, map_width, map_height, player, miya, tama, entities,
-                        max_monsters_per_room, max_items_per_room)
+    player, miya, tama, entities, game_map, message_log, game_state = get_game_variables(constants)
 
     # 視覚の計算
     fov_recompute = True
 
     fov_map = initialize_fov(game_map)
 
-    message_log = MessageLog(message_x, message_width, message_height)
-    
-    game_state = GameStates.PLAYERS_TURN
+
     previous_game_state = game_state
 
     targeting_item = None
@@ -90,14 +42,16 @@ def main():
     while True:
         # 視覚の計算
         if fov_recompute:
-            recompute_fov(fov_map, player.x, player.y, fov_radius, fov_light_walls, fov_algorithm)
+            recompute_fov(fov_map, player.x, player.y, constants["fov_radius"], constants["fov_light_walls"],
+                          constants["fov_algorithm"])
 
         # ループに記述することでマウスの情報を取得し続ける
         mouse = libtcod.event.get_mouse_state()
 
         # entityをここから呼び出す
-        render_all(con, panel, entities, player, game_map, fov_map, fov_recompute, message_log, screen_width,
-                    screen_height, bar_width, panel_height, panel_y, mouse, colors, game_state)
+        render_all(con, panel, entities, player, game_map, fov_map, fov_recompute, message_log,
+                   constants["screen_width"], constants["screen_height"], constants["bar_width"],
+                   constants["panel_height"], constants["panel_y"], mouse, constants["colors"], game_state)
 
         fov_recompute = False
 

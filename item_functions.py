@@ -70,30 +70,30 @@ def cast_fireball(*args, **kwargs):
 
     return results
 
-    def cast_confuse(*args, **kwargs):
-        entities = kwargs.get("entities")
-        fov_map = kwargs.get("fov_map")
-        target_x = kwargs.get("target_x")
-        target_y = kwargs.get("target_y")
+def cast_confuse(*args, **kwargs):
+    entities = kwargs.get("entities")
+    fov_map = kwargs.get("fov_map")
+    target_x = kwargs.get("target_x")
+    target_y = kwargs.get("target_y")
 
-        results = []
+    results = []
 
-        if not libtcod.map_is_in_fov(fov_map, target_x, target_y):
-            results.append({"consumed": False, "message": Message("You cannot target a tile outside your field of view.", libtcod.yellow)})
-            return results
+    if not libtcod.map_is_in_fov(fov_map, target_x, target_y):
+        results.append({"consumed": False, "message": Message("You cannot target a tile outside your field of view.", libtcod.yellow)})
+        return results
 
-        for entity in entities:
-            if entity.x == target_x and entity.y == target_y and entity.ai:
-                confused_ai = ConfusedMonster(entity.ai, 10)
+    for entity in entities:
+        if entity.x == target_x and entity.y == target_y and entity.ai:
+            confused_ai = ConfusedMonster(entity.ai, 10)
 
-                confused_ai.owner = entity
-                entity.ai = confused_ai
+            confused_ai.owner = entity
+            entity.ai = confused_ai
 
-                results.append({"consumed": True, "message": Message("The eyes of the {0} look vacant, as he starts to stumble around!".format(entity.name, name), libtcod.light_green)})
+            results.append({"consumed": True, "message": Message("The eyes of the {0} look vacant, as he starts to stumble around!".format(entity.name, name), libtcod.light_green)})
 
-                break
+            break
 
-            else:
-                results.append({"consumed": False, "message": Message("There is no targetable enemy at that location.", libtcod.yellow)})
+        else:
+            results.append({"consumed": False, "message": Message("There is no targetable enemy at that location.", libtcod.yellow)})
 
-            return results
+        return results
