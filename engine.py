@@ -7,15 +7,17 @@ from entity import get_blocking_entities_at_location
 from fov_functions import initialize_fov, recompute_fov
 from game_messages import Message
 from game_states import GameStates
-from input_handlers import handle_keys, handle_mouse
+from input_handlers import handle_keys, handle_mouse, handle_main_menu
 from loader_functions.initialize_new_game import get_constants, get_game_variables
+from loader_functions.data_loaders import load_game, save_game
+from menus import main_menu, message_box
 from render_functions import clear_all, render_all
 
 
 
 def main():
+    # 定数を読み込む
     constants = get_constants()
-
 
     # フォントの指定と(libtcod.FONT_TYPE_GRAYSCALE | libtcod.FONT_LAYOUT_TCOD）でどのタイプのファイルを読み取るのかを伝える
     libtcod.console_set_custom_font("arial10x10.png", libtcod.FONT_TYPE_GRAYSCALE | libtcod.FONT_LAYOUT_TCOD)
@@ -26,8 +28,58 @@ def main():
     con = libtcod.console.Console(constants["screen_width"], constants["screen_height"])
     panel = libtcod.console.Console(constants["screen_width"], constants["panel_height"])
 
-    player, miya, tama, entities, game_map, message_log, game_state = get_game_variables(constants)
+    player = None
+    miya = None
+    tama = None
+    entities = []
+    game_map = None
+    message_log = None
+    game_state = None
 
+    show_main_menu = True
+    show_load_error_message = False
+
+    main_menu_background_image = libtcod.image_load("menu_background.png")
+
+    while True:
+        if show_main_menu:
+            main_menu(con, main_menu_background_image, constants["screen_width"],
+                      constants["screen_height"])
+
+            if show_load_error_message:
+                message_box(con, "No save game to load", 50, constants["screen_width"], constants["screen_height"])
+
+            libtcod.console_flush()
+            for events in libtcod.event.get():
+                action = handle_main_menu(events)
+
+                new_game = action.get("new_game")
+                load_saved_game = action.get("load_game")
+                exit_game = action.get("exit")
+
+            if show_load_error_message and (new_game or load_saved_game or exit_game):
+                show_load_error_message = False
+            elif new_game:
+                player, entities, game_map, message_log, game_state = get_game_variables(constants)
+                game_state = GameStates.PLAYERS_TURN
+
+                show_main_menu = False
+            elif load_saved_game:
+                try:
+                    player, entities, game_map, message_log, game_state = load_game()
+                    show_main_menu = False
+                except FileNotFoundError:
+                    show_load_error_message = True
+            elif exit_game:
+                break
+
+        else:
+            libtcod.console_clear(con)
+            play_game(player, entities, game_map, message_log, game_state, con, panel, constants)
+
+            show_main_menu = True
+
+def play_game(player, entities, game_map, message_log, game_state, con, panel, constants):
     # 視覚の計算
     fov_recompute = True
 
@@ -80,7 +132,7 @@ def main():
                 exit = action.get("exit")
                 fullscreen = action.get("fullscreen")
 
-                lift_click = mouse_action.get("lift_click")
+                left_click = mouse_action.get("left_click")
                 right_click = mouse_action.get("right_click")
 
                 player_turn_results = []

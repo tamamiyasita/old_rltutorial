@@ -65,7 +65,7 @@ def handle_player_turn_keys(events):
     # キーが押されてない時は空の辞書を返す
     return {}
 
-def hendle_targeting_keys(events):
+def handle_targeting_keys(events):
     if events.sym == event.K_ESCAPE:
         return {"exit": True}
 
@@ -83,16 +83,6 @@ def handle_player_dead_keys(events):
 
     return {}
 
-def handle_mouse(mouse):
-    (x, y) = (mouse.tile)
-
-    if event.BUTTON_LEFT:
-        return {"left_click": (x, y)}
-    elif event.BUTTON_RIGHT:
-        return {"right_click": (x, y)}
-
-    return {}
-
 def handle_inventory_keys(events):
     index = events.sym - ord("a")
 
@@ -106,3 +96,24 @@ def handle_inventory_keys(events):
         return {"exit": True}
 
     return {}
+
+def handle_main_menu(events):
+    if events.sym == event.K_a:
+        return {"new_game": True}
+    elif events.sym == event.K_b:
+        return {"load_game": True}
+    elif events.sym == event.K_c or event.K_ESCAPE:
+        return {"exit": True}
+
+    return {}
+
+def handle_mouse(mouse):
+    (x, y) = (mouse.tile)
+
+    if event.BUTTON_LEFT:
+        return {"left_click": (x, y)}
+    elif event.BUTTON_RIGHT:
+        return {"right_click": (x, y)}
+
+    return {}
+
