@@ -102,7 +102,7 @@ def handle_main_menu(events):
         return {"new_game": True}
     elif events.sym == event.K_b:
         return {"load_game": True}
-    elif events.sym == event.K_c or event.K_ESCAPE:
+    elif events.sym == event.K_c:
         return {"exit": True}
 
     return {}
