@@ -53,6 +53,9 @@ def handle_player_turn_keys(events):
 
     elif events.sym == event.K_d:
         return {"drop_inventory": True}
+    
+    elif events.sym == event.K_BACKSPACE:
+        return {"take_stairs": True}
 
     # ALT + Enterでフルスクリーン
     if events.sym == event.K_RETURN:

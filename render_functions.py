@@ -7,6 +7,7 @@ from menus import inventory_menu
 
 
 class RenderOrder(Enum):
+	STAIRS = auto()
 	CORPSE = auto()
 	ITEM = auto()
 	ACTOR = auto()
@@ -63,7 +64,7 @@ def render_all(con, panel, entities, player, game_map, fov_map, fov_recompute, m
 	# entitiesのリストをdraw_entityに渡して描画
 	entities_in_render_order = sorted(entities, key=lambda x: x.render_order.value)
 	for entity in entities_in_render_order:
-		draw_entity(con, entity, fov_map)
+		draw_entity(con, entity, fov_map, game_map)
 
 	# 実際に画面に描画するコマンド、コンソールを指定してx,yの0からscreenまでの描画範囲を指定、後ろの0は高さ幅などの設定(0で最大)
 	libtcod.console_blit(con, 0, 0, screen_width, screen_height, 0, 0, 0)
@@ -81,6 +82,9 @@ def render_all(con, panel, entities, player, game_map, fov_map, fov_recompute, m
 
 	render_bar(panel, 1, 1, bar_width, "HP", player.fighter.hp, player.fighter.max_hp,
 			   libtcod.light_red, libtcod.darker_red)
+	
+	libtcod.console_print_ex(panel, 1, 3, libtcod.BKGND_NONE, libtcod.LEFT,
+							 "Dungeon level: {0}".format(game_map.dungeon_level))
 
 	libtcod.console_set_default_foreground(panel, libtcod.light_gray)
 	libtcod.console_print_ex(panel, 1, 0, libtcod.BKGND_NONE, libtcod.LEFT,
@@ -101,9 +105,9 @@ def clear_all(con, entities):
 	for entity in entities:
 		clear_entity(con, entity)
 
-def draw_entity(con, entity, fov_map):
+def draw_entity(con, entity, fov_map, game_map):
 	# 視覚内のオブジェクトなら表示
-	if libtcod.map_is_in_fov(fov_map, entity.x, entity.y):
+	if libtcod.map_is_in_fov(fov_map, entity.x, entity.y) or (entity.stairs and game_map.tiles[entity.x][entity.y].explored):
 		libtcod.console_set_default_foreground(con, entity.color)
 		libtcod.console_put_char(con, entity.x, entity.y, entity.char, libtcod.BKGND_NONE)
 
