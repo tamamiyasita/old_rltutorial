@@ -27,7 +27,7 @@ def play_game(player, entities, game_map, message_log, game_state, con, panel, c
 
     targeting_item = None
 
-        # ゲームループと呼ばれるもの、ウィンドウを閉じるまでループする
+        # ループと呼ばれるもの、ウィンドウを閉じるまでループする
     while True:
         # 視覚の計算
         if fov_recompute:
