@@ -113,7 +113,7 @@ def handle_main_menu(events):
 def handle_mouse(mouse):
     (x, y) = (mouse.tile)
 
-    if event.BUTTON_LEFT:
+    if event.K_LALT:
         return {"left_click": (x, y)}
     elif event.BUTTON_RIGHT:
         return {"right_click": (x, y)}
