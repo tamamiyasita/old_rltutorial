@@ -15,6 +15,12 @@ def handle_keys(events, game_state):
 
     elif game_state in (GameStates.SHOW_INVENTORY, GameStates.DROP_INVENTORY):
         return handle_inventory_keys(events)
+    
+    elif game_state == GameStates.LEVEL_UP:
+        return handle_level_up_menu(events)
+    
+    elif game_state == GameStates.CHARACTER_SCREEN:
+        return handle_character_screen(events)
 
     return {}
 
@@ -56,6 +62,9 @@ def handle_player_turn_keys(events):
     
     elif events.sym == event.K_BACKSPACE:
         return {"take_stairs": True}
+
+    elif events.sym == event.K_c:
+        return {"show_character_screen": True}
 
     # ALT + Enterでフルスクリーン
     if events.sym == event.K_RETURN:
@@ -110,10 +119,26 @@ def handle_main_menu(events):
 
     return {}
 
+def handle_level_up_menu(events):
+    if events.sym == event.K_a:
+        return {"level_up": "hp"}
+    elif events.sym == event.K_b:
+        return {"level_up": "str"}
+    elif events.sym == event.K_c:
+        return {"level_up": "def"}
+
+    return {}
+
+def handle_character_screen(events):
+    if events.sym == event.K_ESCAPE:
+        return {"exit": True}
+
+    return {}
+
 def handle_mouse(mouse):
     (x, y) = (mouse.tile)
 
-    if event.K_LALT:
+    if event.BUTTON_LEFT:
         return {"left_click": (x, y)}
     elif event.BUTTON_RIGHT:
         return {"right_click": (x, y)}
