@@ -38,7 +38,7 @@ class ConfusedMonster:
             self.number_of_turns -= 1
 
         else:
-            self.owner.ai = self.previouse_ai
+            self.owner.ai = self.previous_ai
             results.append({"message": Message("The {0} is no longer confused!".format(self.owner.name), libtcod.red)})
 
         return results

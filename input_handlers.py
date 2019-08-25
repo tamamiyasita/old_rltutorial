@@ -50,6 +50,9 @@ def handle_player_turn_keys(events):
 
     elif events.sym == event.K_PAGEDOWN:
         return {"move": (1, 1)}
+    
+    elif events.sym == event.K_z:
+        return {"wait": True}
 
     if events.sym == event.K_g:
         return {"pickup": True}

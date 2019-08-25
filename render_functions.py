@@ -3,7 +3,7 @@ import tcod.event as event
 import itertools
 from enum import Enum, auto
 from game_states import GameStates
-from menus import inventory_menu, level_up_menu
+from menus import character_screen, inventory_menu, level_up_menu
 
 
 class RenderOrder(Enum):
@@ -102,6 +102,9 @@ def render_all(con, panel, entities, player, game_map, fov_map, fov_recompute, m
 
 	elif game_state == GameStates.LEVEL_UP:
 		level_up_menu(con, "Level up! Choose a stat to raise:", player, 40, screen_width, screen_height)
+
+	elif game_state == GameStates.CHARACTER_SCREEN:
+		character_screen(player, 30, 10, screen_width, screen_height)
 
 def clear_all(con, entities):
 	# 下記のclear_entityを使って描画された全てのentityをクリアするためのループ

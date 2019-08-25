@@ -33,6 +33,8 @@ def play_game(player, entities, game_map, message_log, game_state, con, panel, c
         if fov_recompute:
             recompute_fov(fov_map, player.x, player.y, constants["fov_radius"], constants["fov_light_walls"],
                           constants["fov_algorithm"])
+        # 画面上に描画する機能
+        libtcod.console_flush()
 
         # ループに記述することでマウスの情報を取得し続ける
         mouse = libtcod.event.get_mouse_state()
@@ -44,14 +46,18 @@ def play_game(player, entities, game_map, message_log, game_state, con, panel, c
 
         fov_recompute = False
 
-        # 画面上に描画する機能
-        libtcod.console_flush()
+
 
         # 移動後のentitiesをスペース（" "）で上書きして消す
         clear_all(con, entities)
 
         # event.get()イテレータをループで回し各キーの押下判定を行う
         for events in libtcod.event.get():
+
+            mouse_action = handle_mouse(mouse)
+            left_click = mouse_action.get("left_click")
+            right_click = mouse_action.get("right_click")
+
             if events.type == "QUIT":
                 raise SystemExit()
 
@@ -59,9 +65,9 @@ def play_game(player, entities, game_map, message_log, game_state, con, panel, c
 
                 # handle_keysから各種変数を作っていく
                 action = handle_keys(events, game_state)
-                mouse_action = handle_mouse(mouse)
 
                 move = action.get("move")
+                wait = action.get("wait")
                 pickup = action.get("pickup")
                 show_inventory = action.get("show_inventory")
                 inventory_index = action.get("inventory_index")
@@ -72,8 +78,6 @@ def play_game(player, entities, game_map, message_log, game_state, con, panel, c
                 drop_inventory = action.get("drop_inventory")
                 fullscreen = action.get("fullscreen")
 
-                left_click = mouse_action.get("left_click")
-                right_click = mouse_action.get("right_click")
 
                 player_turn_results = []
                 
@@ -97,6 +101,9 @@ def play_game(player, entities, game_map, message_log, game_state, con, panel, c
                             fov_recompute = True
 
                         game_state = GameStates.ENEMY_TURN
+
+                elif wait:
+                    game_state = GameStates.ENEMY_TURN
 
                 elif pickup and game_state == GameStates.PLAYERS_TURN:
                     for entity in entities:
@@ -165,7 +172,7 @@ def play_game(player, entities, game_map, message_log, game_state, con, panel, c
                         player_turn_results.append({"targeting_cancelled": True})
 
                 if exit:
-                    if game_state in (GameStates.SHOW_INVENTORY, GameStates.DROP_INVENTORY):
+                    if game_state in (GameStates.SHOW_INVENTORY, GameStates.DROP_INVENTORY, GameStates.CHARACTER_SCREEN):
                         game_state = previous_game_state
 
                     elif game_state == GameStates.TARGETING:
@@ -226,12 +233,15 @@ def play_game(player, entities, game_map, message_log, game_state, con, panel, c
                         game_state = GameStates.ENEMY_TURN
 
                     if xp:
-                        level_up = player.level.add_xp(xp)
-                        message_log.add_message(Message(
-                            "Your battle skills grow stronger! You reached level {0}".format(
-                                player.level.current_level) + "!", libtcod.yellow))
-                        previous_game_state = game_state
-                        game_state = GameStates.LEVEL_UP
+                        leveled_up = player.level.add_xp(xp)
+                        message_log.add_message(Message("You gain {0} experience points.".format(xp)))
+
+                        if leveled_up:
+                            message_log.add_message(Message(
+                                "Your battle skills grow stronger! You reached level {0}".format(
+                                    player.level.current_level) + "!", libtcod.yellow))
+                            previous_game_state = game_state
+                            game_state = GameStates.LEVEL_UP
 
                 if game_state == GameStates.ENEMY_TURN:
                     for entity in entities:
